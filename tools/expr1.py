@@ -3,16 +3,16 @@
 """
 Created on Sat Nov 18 23:10:33 2017
 
-@author: cspl
+@author: kamadanen 
+
+Note: please put data at root before run the experiment
 """
 
 #%% necessary libs
-import os
 import numpy as np
-import random as rd
-import matplotlib.pyplot as plt
-import scipy.io as sio
-import time
+#import random as rd
+#import matplotlib.pyplot as plt
+#import scipy.io as sio
 import json as js
 from sklearn.metrics import accuracy_score as accu
 
@@ -21,17 +21,10 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM
 
 #%% read data
-f = open('data', 'r')
+f = open('../Data/data', 'r')
 X = js.load(f)
 f.close()
-data_size = len(X)
-#%%
-if 0:
-    seq = np.array(X[np.random.randint(len(X))][1])
-    inds = np.where(seq == 0)
-#    plt.stem(X[np.random.randint(len(X))][1][1:100])
-    
-
+data_size = len(X)    
 #%% prepare data
 train_test_split = 0.5
 
@@ -41,27 +34,23 @@ train_idx = idx[0:int(train_test_split*data_size)]
 train_data_size = len(train_idx)
 test_idx = idx[int(train_test_split*data_size)+1:-1]
 test_data_size = len(test_idx)
-
-
-
-
-
+data_idx = np.array([train_idx, test_idx])
+np.save('../Data/idx', data_idx)
 #%% model construction
 model = Sequential()
-model.add(LSTM(100, input_shape=(None, 1), return_sequences=True))
+model.add(LSTM(2, input_shape=(None, 1), return_sequences=True,
+    activation='softmax'))
 #model.add(LSTM(100))
 #model.add(TimeDistributed(Dense(100,  activation='softmax')))
 #model.add(TimeDistributed(Dense(100,  activation='softmax')))
-model.add(Dense(2, activation='softmax'))
+#model.add(Dense(2, activation='softmax'))
 model.compile(loss='categorical_crossentropy',
               optimizer='sgd',
               metrics=['accuracy'])
-
-
 #%% training
 epoch = 10
 #batch_size = 1
-recurr = 200
+recurr = 100
 for ep in range(epoch):
     id = 1
     for bt in train_idx:
@@ -88,7 +77,6 @@ for ep in range(epoch):
             model.train_on_batch(X_train, y_train) 
             
             
-            
             if 0:
                 X_validation = np.reshape(seq, (1, len(seq), 1))
                 pdt_validation = model.predict_classes(X_validation)
@@ -98,6 +86,8 @@ for ep in range(epoch):
             
             
             id = id + 1
+model.save('../results/model.h5')
+
 #%%
 if 0:
     ind = np.random.randint(len(test_idx))
@@ -107,20 +97,6 @@ if 0:
     pdt = model.predict_classes(X_test)
     ac = accu(pdt.T, label_test)
     print(ac)
-#%%
-ac = 0
-id = 1
-for ind in test_idx:
-    seq_test = X[ind][0]
-    label_test = X[ind][1]
-    X_test = np.reshape(seq_test, (1, len(seq_test), 1))
-    pdt = model.predict_classes(X_test)
-    accuracy = accu(pdt.T, label_test)
-    print('accuracy for #', id, 'sample =', accuracy)
-    ac = ac + accuracy
-    id = id +1
-ac_avg = ac/len(test_idx)
-print('average test accuracy =', ac_avg)
 
 
 
