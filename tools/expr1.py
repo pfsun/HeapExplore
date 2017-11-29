@@ -48,9 +48,9 @@ model.compile(loss='categorical_crossentropy',
               optimizer='sgd',
               metrics=['accuracy'])
 #%% training
-epoch = 10
+epoch = 30
 #batch_size = 1
-recurr = 100
+recurr = 2000
 for ep in range(epoch):
     id = 1
     for bt in train_idx:
