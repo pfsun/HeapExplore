@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sat Nov 18 23:10:33 2017
+Created on Wed Nov 29 15:46:24 2017
 
-@author: kamadanen 
+@author: cspl
 
-batch size 
-
-Note: please put data at root before run the experiment
+to use stateful lstm with batch size 1
 """
 
 #%% necessary libs
 import numpy as np
 #import random as rd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 #import scipy.io as sio
 import json as js
 from sklearn.metrics import accuracy_score as accu
@@ -28,7 +26,7 @@ X = js.load(f)
 f.close()
 data_size = len(X)    
 #%% prepare data
-train_test_split = 0.5
+train_test_split = 0.1
 
 idx = np.random.permutation(data_size)
 
@@ -40,21 +38,23 @@ data_idx = np.array([train_idx, test_idx])
 np.save('../Data/idx', data_idx)
 #%% model construction
 model = Sequential()
-model.add(LSTM(10, input_shape=(None, 1), return_sequences=True,
-    activation='relu'))
+model.add(LSTM(2, input_shape=(None, 1), return_sequences=True,
+    activation='softmax'))
 #model.add(LSTM(100))
 #model.add(TimeDistributed(Dense(100,  activation='softmax')))
 #model.add(TimeDistributed(Dense(100,  activation='softmax')))
-model.add(Dense(2, activation='softmax'))
+#model.add(Dense(2, activation='softmax'))
 model.compile(loss='categorical_crossentropy',
               optimizer='sgd',
               metrics=['accuracy'])
 #%% training
-epoch = 50
-recurr = 200
+epoch = 1
+#batch_size = 1
+recurr = 20
 for ep in range(epoch):
     id = 1
     for bt in train_idx:
+        print('epoch #', ep, 'processing #', id)
         seq = X[bt][0]
         label = X[bt][1]
 #        print('sequence length =', len(seq))        
@@ -69,29 +69,26 @@ for ep in range(epoch):
             y_train = keras.utils.to_categorical(y_train, 2)
             y_train = np.reshape(y_train, (X_train_size, recurr,  2), order='C')
             
+            for sample_idx in range(X_train.shape[0]):
+                X_train_sample = X_train[sample_idx, :, :]
+                y_train_sample = y_train[sample_idx, :, :]
+                model.train_on_batch(X_train, y_train)
             
     #        X_train = np.expand_dims(np.expand_dims(seq, axis=0), axis=2)
     #        y_train = keras.utils.to_categorical(label, 2)
     #        y_train = np.expand_dims(y_train, axis=0)
             
-            loss = model.train_on_batch(X_train, y_train) 
-            print('epoch #', ep, 'processing #', id, model.metrics_names[0], loss[0], model.metrics_names[1], loss[1])
+#            model.train_on_batch(X_train, y_train) 
             
-            if 0:
-                X_validation = np.reshape(seq, (1, len(seq), 1))
-                pdt_validation = model.predict_classes(X_validation)
-                ac_validation = accu(pdt_validation.T, label)
-                print('epoch #', id, 'processing #', id, 'validation accuracy =', ac_validation)
             
             
             
             id = id + 1
 model.save('../results/model.h5')
-
 #%% validation on training set
 ac = 0
 id = 0
-percent = 0.5
+percent = 0.1
 validation_idx = train_idx[:int(len(train_idx)*percent)]
 truth = []
 result = []
@@ -103,39 +100,9 @@ for ind in validation_idx:
     pdt = model.predict_classes(X_validation)
     result.append(pdt)
     accuracy = accu(pdt.T, label_validation)
-    print('accuracy for #', id, '/', len(validation_idx), 'sample =', accuracy, 'sample length =', len(seq_validation))
+    print('accuracy for #', id, 'sample =', accuracy, 'sample length =', len(seq_validation))
     ac = ac + accuracy
     id = id +1
 ac_avg = ac/len(validation_idx)
 print('****************************************************************')
 print('average validation accuracy =', ac_avg)
-#%%
-if 0:
-    ind = np.random.randint(len(test_idx))
-    seq_test = X[test_idx[ind]][0]
-    label_test = X[test_idx[ind]][1]
-    X_test = np.reshape(seq_test, (1, len(seq_test), 1))
-    pdt = model.predict_classes(X_test)
-    ac = accu(pdt.T, label_test)
-    print(ac)
-#%%
-for i in range(10):
-    plt.figure()
-    plt.plot(X_train[i, :, :])
-#%%
-offset = 70
-plt.figure(figsize=(12, 18))
-for i in range(1+offset, 10+offset):
-    plt.subplot(520+i-offset)
-    plt.plot(result[i][0, :])
-    plt.title(i)
-#%%
-offset = 5
-plt.figure(figsize=(12, 18))
-for i in range(1+offset, 10+offset):
-    plt.subplot(520+i-offset)
-    plt.plot(truth[i])
-    plt.title(i)
-
-
-

@@ -36,6 +36,14 @@ def main(dump, log):
         # print final_bin_int
         memory_obj = read_dump.get_mem_alloc(each_file, log_file, offset)
         # print memory_obj
+
+	temp_memory_obj = {}
+	for key in memory_obj:
+		temp_memory_obj[key - 8] = memory_obj[key] + 8
+	# print temp_memory_obj
+	memory_obj = temp_memory_obj
+	# print memory_obj
+
         label = read_dump.get_label(final_bin_int, memory_obj)
         final_list = [final_bin_int, label]
         ## final_list is the result for each memory dump image and malloc log file

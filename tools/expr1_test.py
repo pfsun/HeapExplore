@@ -19,6 +19,7 @@ data_size = len(X)
 #%%
 data_idx = np.load('../Data/idx.npy')
 test_idx = data_idx[1]
+train_idx = data_idx[0]
 #%%
 model = ld('../results/model.h5')
 #%%
