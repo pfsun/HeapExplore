@@ -15,7 +15,7 @@ Created on Wed Nov 29 15:46:24 2017
 
 @author: cspl
 
-to use stateful lstm with batch size 1
+to train on one whole image
 """
 
 #%% necessary libs
@@ -30,8 +30,12 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM, TimeDistributed, GRU
 
 adam = opt.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+
+data_path = '../../Data/data'
+data_idx_path = '../../Data/idx'
+result_path = '../../results/model.h5'
 #%% read data
-f = open('../../Data/data', 'r')
+f = open(data_path, 'r')
 X = js.load(f)
 f.close()
 data_size = len(X)    
@@ -45,7 +49,7 @@ train_data_size = len(train_idx)
 test_idx = idx[int(train_test_split*data_size)+1:-1]
 test_data_size = len(test_idx)
 data_idx = np.array([train_idx, test_idx])
-np.save('../../Data/idx', data_idx)
+np.save(data_idx_path, data_idx)
 #%% model construction
 model = Sequential()
 model.add(GRU(100, batch_input_shape=(1, None, 1), return_sequences=True, stateful=True))
@@ -66,21 +70,16 @@ sample_idx = 4 #train_idx[0]
 recurr = 200
 seq = X[sample_idx][0]
 label = X[sample_idx][1]
+
+
 print('training sample length =', len(seq))
     
-if len(seq)>recurr:
-    X_train_size = int(len(seq)/recurr)
-    
-    X_train = seq[:X_train_size*recurr]# (batch_size, timesteps, input_dim)
-    X_train = np.reshape(X_train, (X_train_size, recurr))
-    X_train = np.expand_dims(X_train, axis=2)
-    y_train = label[:X_train_size*recurr]
-    y_train = np.reshape(y_train, (X_train_size, recurr))
-    y_train = np.expand_dims(y_train, axis=2)
+X_train = np.expand_dims(np.expand_dims(seq, axis=2), axis=0)
+y_train = np.expand_dims(np.expand_dims(label, axis=2), axis=0)
     
     model.reset_states()
     model.fit(X_train[:, :, :], y_train[:, :, :], epochs=50, batch_size=1, shuffle=False)
-model.save('../../results/model.h5')
+model.save(result_path)
 #%% validation on training sequence
 X_validation = np.reshape(X[sample_idx][0], (1, len(X[sample_idx][0]), 1))
 pdt = model.predict_classes(X_validation)

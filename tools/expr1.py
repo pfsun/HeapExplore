@@ -28,16 +28,17 @@ X = js.load(f)
 f.close()
 data_size = len(X)    
 #%% prepare data
-train_test_split = 0.5
-
-idx = np.random.permutation(data_size)
-
-train_idx = idx[0:int(train_test_split*data_size)]
-train_data_size = len(train_idx)
-test_idx = idx[int(train_test_split*data_size)+1:-1]
-test_data_size = len(test_idx)
-data_idx = np.array([train_idx, test_idx])
-np.save('../Data/idx', data_idx)
+if 0:
+    train_test_split = 0.5
+    
+    idx = np.random.permutation(data_size)
+    
+    train_idx = idx[0:int(train_test_split*data_size)]
+    train_data_size = len(train_idx)
+    test_idx = idx[int(train_test_split*data_size)+1:-1]
+    test_data_size = len(test_idx)
+    data_idx = np.array([train_idx, test_idx])
+    np.save('../Data/idx', data_idx)
 #%% model construction
 model = Sequential()
 model.add(LSTM(10, input_shape=(None, 1), return_sequences=True,

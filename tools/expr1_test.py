@@ -12,16 +12,16 @@ import json as js
 from sklearn.metrics import accuracy_score as accu
 import matplotlib.pyplot as plt
 #%% read data
-f = open('../Data/data', 'r')
+f = open('../../Data/data', 'r')
 X = js.load(f)
 f.close()
 data_size = len(X) 
 #%%
-data_idx = np.load('../Data/idx.npy')
+data_idx = np.load('../../Data/idx.npy')
 test_idx = data_idx[1]
 train_idx = data_idx[0]
 #%%
-model = ld('../results/model.h5')
+model = ld('../../results/model.h5')
 #%%
 ac = 0
 id = 0
