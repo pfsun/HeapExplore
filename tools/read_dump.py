@@ -145,6 +145,22 @@ def get_label(final_bin_int, memory_obj):
 # final_list = [final_bin_int, label]
 # print final_list
 
+## add label 2 for meta data
+def get_label_meta(final_bin_int, memory_obj):
+	label = []
+        #print '###', len(final_bin_int)
+	for i in range (0, len(final_bin_int)):
+		label.append(0)
+
+	for key in memory_obj:
+		#print key, memory_obj[key]
+		for index in range(key, key + 8):
+			label[index] = 2
+
+		for index in range (key + 8, key+memory_obj[key]):
+			label[index] = 1
+
+	return label
 
 def main():
 
