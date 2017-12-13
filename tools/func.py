@@ -21,7 +21,8 @@ def main(dump, log):
     data = []
     for each_file in matches:
         each_file_split = each_file.split('/')
-        binary_name = each_file_split[2]
+        # binary_name = each_file_split[2]
+	binary_name = each_file_split[each_file_split.index('memory') - 1]
         binary_name_split = binary_name.split('_')
         binary_name = binary_name_split[0]
         log_file = log + '/'  + binary_name + '.txt'
@@ -37,12 +38,6 @@ def main(dump, log):
         memory_obj = read_dump.get_mem_alloc(each_file, log_file, offset)
         # print memory_obj
 
-	temp_memory_obj = {}
-	for key in memory_obj:
-		temp_memory_obj[key - 8] = memory_obj[key] + 8
-	# print temp_memory_obj
-	memory_obj = temp_memory_obj
-	# print memory_obj
         # use get_label_meta to replace get_label, get_label_meta will add label 2 to meta data.
         label = read_dump.get_label_meta(final_bin_int, memory_obj)
         # label = read_dump.get_label(final_bin_int, memory_obj)

@@ -69,7 +69,8 @@ def get_mem_alloc(filename, log, offset):
 
 
 	filename_split = filename.split('/')
-	sign_str = filename_split[2]
+	# sign_str = filename_split[2]
+        sign_str = filename_split[filename_split.index("memory") - 1]
 
 	memory_obj = {}
 
@@ -125,6 +126,18 @@ def get_mem_alloc(filename, log, offset):
 			break
 		line = f.readline()
 	# print memory_obj
+	# return memory_obj
+	temp_memory_obj = {}
+	for key in memory_obj:
+		temp_memory_obj[key - 8] = memory_obj[key] + 8
+		remainder = temp_memory_obj[key - 8] % 16
+		quot = temp_memory_obj[key - 8] / 16
+		if remainder != 0:
+			temp_memory_obj[key - 8] += (16 - remainder)
+		if quot == 0:
+			temp_memory_obj[key - 8] *= 2
+	print temp_memory_obj
+	memory_obj = temp_memory_obj
 	return memory_obj
 
 
