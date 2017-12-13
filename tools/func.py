@@ -51,7 +51,7 @@ def main(dump, log):
         #print final_list
         data.append(final_list)
 
-    f = open('data', 'w')
+    f = open('../../Data/data', 'w')
     json.dump(data, f)
     f.close()
     print "################done"

@@ -18,10 +18,12 @@ import keras
 
 
 #%% read data
-f = open('../../Data/data', 'r')
-X = js.load(f)
-f.close()
-data_size = len(X) 
+def loadData(directory):
+    f = open(directory, 'r')
+    X = js.load(f)
+    f.close()
+    return X
+
 #%%
 def plotHist(X):
     ll = []
@@ -32,13 +34,10 @@ def plotHist(X):
     plt.plot(ll_hist[1][:-1], ll_hist[0])
 
 #%% visualize data
-vasualization_idx = np.arange(9)
-offset = 100
-
-dv.plotData(vasualization_idx+offset, X)
-
-
-plt.show()
+def visualizeData(X, offset):
+    vasualization_idx = np.arange(9) 
+    dv.plotData(vasualization_idx+offset, X)   
+    plt.show()
 #%%
 def extractDump(X, lower, upper):
     X1 = []
@@ -47,17 +46,17 @@ def extractDump(X, lower, upper):
             if len(sample[0]) > lower:
                 X1.append(sample)
     return X1
-#%%
-max_len = 0
-for sample in X1:
-    if max_len < len(sample[0]):
-        max_len = len(sample[0])
-#%%
-#data = np.zeros([len(X1), max_len])
-X_train_list = []
-y_train_list = []
-for sample in X1:
-    X_train_list.append(sample[0])
-    y_train_list.append(sample[1])
-X_train = keras.preprocessing.sequence.pad_sequences(X_train_list, padding='post', value=0.)
-y_train = keras.preprocessing.sequence.pad_sequences(y_train_list, padding='post', value=0.)
+##%%
+#max_len = 0
+#for sample in X1:
+#    if max_len < len(sample[0]):
+#        max_len = len(sample[0])
+##%%
+##data = np.zeros([len(X1), max_len])
+#X_train_list = []
+#y_train_list = []
+#for sample in X1:
+#    X_train_list.append(sample[0])
+#    y_train_list.append(sample[1])
+#X_train = keras.preprocessing.sequence.pad_sequences(X_train_list, padding='post', value=0.)
+#y_train = keras.preprocessing.sequence.pad_sequences(y_train_list, padding='post', value=0.)

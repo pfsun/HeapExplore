@@ -23,7 +23,7 @@ def plotData(idx, X):
     for img in idx:
         plt.subplot(331+i)
         plt.plot(X[img][1])
-        plt.ylim([-0.1, 1.1])
+        plt.ylim([-0.1, 2.1])
         plt.title(img)
         i += 1
 

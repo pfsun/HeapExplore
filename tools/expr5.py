@@ -25,6 +25,7 @@ import json as js
 import data_visualization as dv
 from sklearn.metrics import accuracy_score as accu
 from keras import optimizers as opt
+import keras as krs
 
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, TimeDistributed, GRU
@@ -52,15 +53,15 @@ data_idx = np.array([train_idx, test_idx])
 np.save(data_idx_path, data_idx)
 #%% model construction
 model = Sequential()
-model.add(GRU(100, batch_input_shape=(1, None, 1), return_sequences=True, stateful=True))
-model.add(GRU(100, return_sequences=True, stateful=True))
-model.add(GRU(100, return_sequences=True, stateful=True))
+model.add(LSTM(100, batch_input_shape=(1, None, 1), return_sequences=True, stateful=True))
+model.add(LSTM(100, return_sequences=True, stateful=True))
+model.add(LSTM(100, return_sequences=True, stateful=True))
 #model.add(LSTM(100))
 #model.add(TimeDistributed(Dense(1,  activation='sigmoid')))
 #model.add(TimeDistributed(Dense(100,  activation='softmax')))
 #model.add(Dense(10, activation='relu'))
-model.add(Dense(1, activation='sigmoid'))
-model.compile(loss='binary_crossentropy',
+model.add(Dense(3, activation='softmax'))
+model.compile(loss='categorical_crossentropy',
               optimizer=adam,
               metrics=['accuracy'])
 #%% training
@@ -75,7 +76,8 @@ label = X[sample_idx][1]
 print('training sample length =', len(seq))
     
 X_train = np.expand_dims(np.expand_dims(seq, axis=2), axis=0)
-y_train = np.expand_dims(np.expand_dims(label, axis=2), axis=0)
+#y_train = np.expand_dims(np.expand_dims(label, axis=2), axis=0)
+y_train = krs.utils.to_categorical(label, 3)
     
     model.reset_states()
     model.fit(X_train[:, :, :], y_train[:, :, :], epochs=50, batch_size=1, shuffle=False)
