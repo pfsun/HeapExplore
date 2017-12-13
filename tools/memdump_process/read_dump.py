@@ -136,7 +136,7 @@ def get_mem_alloc(filename, log, offset):
 			temp_memory_obj[key - 8] += (16 - remainder)
 		if quot == 0:
 			temp_memory_obj[key - 8] *= 2
-	print temp_memory_obj
+#	print temp_memory_obj
 	memory_obj = temp_memory_obj
 	return memory_obj
 
