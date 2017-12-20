@@ -16,7 +16,7 @@ def main(dump, log):
     for root, dirnames, filenames in os.walk(dump):
         for filename in fnmatch.filter(filenames, 'heap*'):
             matches.append(os.path.join(root, filename))
-
+    matches.sort()
 #    print matches
     data = []
     for each_file in matches:
