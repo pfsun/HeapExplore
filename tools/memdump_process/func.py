@@ -19,6 +19,9 @@ def main(dump, log, dest):
     matches.sort()
 #    print matches
     data = []
+    ## set meta and padding, whether we should consider meta and padding
+    meta = True
+    padding = False
     for each_file in matches:
         each_file_split = each_file.split('/')
         # binary_name = each_file_split[2]
@@ -35,11 +38,13 @@ def main(dump, log, dest):
         offset, bin_int = read_dump.bin_to_int(each_file)
         final_bin_int = read_dump.gen_bin_to_int_valide(bin_int)
         # print final_bin_int
-        memory_obj = read_dump.get_mem_alloc(each_file, log_file, offset)
+        memory_obj = read_dump.get_mem_alloc(each_file, log_file, offset, padding, meta)
         # print memory_obj
-
-        # use get_label_meta to replace get_label, get_label_meta will add label 2 to meta data.
-        label = read_dump.get_label_meta(final_bin_int, memory_obj)
+	## remove all content are zero for some memory object
+	remove_zero_mem_obj(final_bin_int, memory_obj)
+        
+        # use set_label_meta to replace get_label and get_label_meta
+        label = read_dump.set_label(final_bin_int, memory_obj, meta)
         # label = read_dump.get_label(final_bin_int, memory_obj)
         final_list = [final_bin_int, label]
         ## final_list is the result for each memory dump image and malloc log file

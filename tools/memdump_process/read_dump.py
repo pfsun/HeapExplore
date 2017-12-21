@@ -65,12 +65,17 @@ def gen_bin_to_int_valide(bin_int):
 # final_bin_int = gen_bin_to_int_valide(bin_int)
 # print final_bin_int
 
-def get_mem_alloc(filename, log, offset):
+'''
+# get memory object begging address and size
+# padding == False, we don't consider padding
+# meta == False, we don't conside meta data
+'''
+def get_mem_alloc(filename, log, offset, padding, meta):
 
 
 	filename_split = filename.split('/')
-	# sign_str = filename_split[2]
-        sign_str = filename_split[filename_split.index("memory") - 1]
+	#sign_str = filename_split[2]
+	sign_str = filename_split[filename_split.index("memory") - 1]
 
 	memory_obj = {}
 
@@ -127,66 +132,82 @@ def get_mem_alloc(filename, log, offset):
 		line = f.readline()
 	# print memory_obj
 	# return memory_obj
-	temp_memory_obj = {}
-	for key in memory_obj:
-		temp_memory_obj[key - 8] = memory_obj[key] + 8
-		remainder = temp_memory_obj[key - 8] % 16
-		quot = temp_memory_obj[key - 8] / 16
-		if remainder != 0:
-			temp_memory_obj[key - 8] += (16 - remainder)
-		if quot == 0:
-			temp_memory_obj[key - 8] *= 2
-#	print temp_memory_obj
-	memory_obj = temp_memory_obj
+	if meta:
+		temp_memory_obj = {}
+		for key in memory_obj:
+			temp_memory_obj[key - 8] = memory_obj[key] + 8
+			if padding:
+				remainder = temp_memory_obj[key - 8] % 16
+				quot = temp_memory_obj[key - 8] / 16
+				if remainder != 0:
+					temp_memory_obj[key - 8] += (16 - remainder)
+				if quot == 0:
+					temp_memory_obj[key - 8] *= 2
+		# print temp_memory_obj
+		memory_obj = temp_memory_obj
 	return memory_obj
 
 
-def get_label(final_bin_int, memory_obj):
-	label = []
-        #print '###', len(final_bin_int)
-	for i in range (0, len(final_bin_int)):
-		label.append(0)
-
+'''
+# If all content of memory object are zero, we don't label it as memory object
+'''
+def remove_zero_mem_obj(final_bin_int, memory_obj):
+	rm_key = []
 	for key in memory_obj:
-		#print key, memory_obj[key]
-		for index in range (key, key+memory_obj[key]):
-			label[index] = 1
-
-	return label
-# label = get_mem_alloc(filename, log)
-# print label
-# final_list = [final_bin_int, label]
-# print final_list
-
-## add label 2 for meta data
-def get_label_meta(final_bin_int, memory_obj):
-	label = []
-        #print '###', len(final_bin_int)
-	for i in range (0, len(final_bin_int)):
-		label.append(0)
-
-	for key in memory_obj:
-		#print key, memory_obj[key]
-		for index in range(key, key + 8):
-			label[index] = 2
-
+		count = 0
 		for index in range (key + 8, key+memory_obj[key]):
-			label[index] = 1
+			if final_bin_int[index] == 0:
+				count += 1
+		if count == (memory_obj[key] - 8):
+			# print "all content is zero", key
+			rm_key.append(key)
+	for item in rm_key:
+		del memory_obj[item]
+	# print memory_obj
+
+
+'''
+# Based on whether we consider meta data, we set the label
+'''
+def set_label(final_bin_int, memory_obj, meta):
+	label = []
+        #print '###', len(final_bin_int)
+	for i in range (0, len(final_bin_int)):
+		label.append(0)
+
+	if meta:
+		for key in memory_obj:
+			#print key, memory_obj[key]
+			for index in range(key, key + 8):
+				label[index] = 2
+
+			for index in range (key + 8, key+memory_obj[key]):
+				label[index] = 1
+	else:
+		for key in memory_obj:
+			#print key, memory_obj[key]
+			for index in range (key, key+memory_obj[key]):
+				label[index] = 1	
 
 	return label
+
 
 def main():
 
 	filename = None
 	log = None
 
+	meta = True
+	padding = False
+
 	filename, log = parsing_arg(sys.argv[1:])
 	offset, bin_int = bin_to_int(filename)
 	final_bin_int = gen_bin_to_int_valide(bin_int)
 	print final_bin_int
-	memory_obj = get_mem_alloc(filename, log, offset)
+	memory_obj = get_mem_alloc(filename, log, offset, padding, meta)
 	print memory_obj
-	label = get_label(final_bin_int, memory_obj)
+	remove_zero_mem_obj(final_bin_int, memory_obj)
+	label = set_label(final_bin_int, memory_obj, meta)
 	final_list = [final_bin_int, label]
 	print final_list
 
