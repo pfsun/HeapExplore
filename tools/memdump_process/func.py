@@ -11,7 +11,7 @@ import sys
 import read_dump
 import json
 
-def main(dump, log):
+def main(dump, log, dest):
     matches = []
     for root, dirnames, filenames in os.walk(dump):
         for filename in fnmatch.filter(filenames, 'heap*'):
@@ -46,7 +46,7 @@ def main(dump, log):
         #print final_list
         data.append(final_list)
 
-    f = open('../../Data/data', 'w')
+    f = open(dest, 'w')
     json.dump(data, f)
     f.close()
     print "################done"

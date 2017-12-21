@@ -5,7 +5,7 @@ Created on Wed Nov 29 15:46:24 2017
 
 @author: cspl
 
-to train on one whole image
+to train on one whole image, subsequences
 """
 
 #%% necessary libs
@@ -16,18 +16,18 @@ import data_visualization as dv
 from sklearn.metrics import accuracy_score as accu
 from keras import optimizers as opt
 import keras as krs
+import heapexplore_utils as utils
 
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, TimeDistributed, GRU
 
-data_path = '../../../Data/data'
-data_idx_path = '../../../Data/idx'
-result_path = '../../../results/model.h5'
+adam = opt.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+
+data_path = '../../Data/data'
+data_idx_path = '../../Data/idx'
+result_path = '../../results/model.h5'
 #%% read data
-f = open(data_path, 'r')
-X = js.load(f)
-f.close()
-data_size = len(X)    
+X = utils.loadData(data_path)  
 #%% prepare data
 train_test_split = 0.1
 
@@ -40,7 +40,6 @@ test_data_size = len(test_idx)
 data_idx = np.array([train_idx, test_idx])
 np.save(data_idx_path, data_idx)
 #%% model construction
-adam = opt.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 model = Sequential()
 model.add(LSTM(100, batch_input_shape=(1, None, 1), return_sequences=True, stateful=True))
 model.add(LSTM(100, return_sequences=True, stateful=True))
@@ -54,38 +53,27 @@ model.compile(loss='categorical_crossentropy',
               optimizer=adam,
               metrics=['accuracy'])
 #%% training
-sample_idx = 2 #train_idx[0]
+sample_idx = 4 #train_idx[0]
 
 
 recurr = 200
 seq = X[sample_idx][0]
 label = X[sample_idx][1]
-num_subseq = int(len(seq)/recurr)
-ll = num_subseq*recurr
-seq1 = seq[:ll]
-label1 = label[:ll]
 
-print('training sample length =', ll)
+
+print('training sample length =', len(seq))
     
-seq2 = np.reshape(seq1, (num_subseq, recurr))
-label2 = np.reshape(label1, (num_subseq, recurr))
-
-X_train = np.expand_dims(seq2, axis=2)
-y_train = np.zeros((num_subseq, recurr, 3))
-for i in range(num_subseq):
-    y_train[i, :, :] = krs.utils.to_categorical(label2[i, :], 3)
-
-#y_train = krs.utils.to_categorical(label, 3)
-#y_train = np.expand_dims(y_train, axis=0)
-#%%    
-model.reset_states()
-model.fit(X_train[:, :, :], y_train[:, :, :], epochs=50, batch_size=1, shuffle=False)
+X_train = np.expand_dims(np.expand_dims(seq, axis=2), axis=0)
+#y_train = np.expand_dims(np.expand_dims(label, axis=2), axis=0)
+y_train = krs.utils.to_categorical(label, 3)
+    
+    model.reset_states()
+    model.fit(X_train[:, :, :], y_train[:, :, :], epochs=50, batch_size=1, shuffle=False)
 model.save(result_path)
 #%% validation on training sequence
-X_validation = np.reshape(seq, (1, len(seq), 1))
+X_validation = np.reshape(X[sample_idx][0], (1, len(X[sample_idx][0]), 1))
 pdt = model.predict_classes(X_validation)
-plt.plot(pdt.T)
-accuracy = accu(pdt.T, label)
+accuracy = accu(pdt[:, :, 0].T, X[sample_idx][1])
 print('training accuracy is', accuracy)
 #%% validation result plot
 plt.figure(figsize=(12, 3))
