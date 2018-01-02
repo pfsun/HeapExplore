@@ -21,11 +21,9 @@ import heapexplore_utils as utils
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, TimeDistributed, GRU
 
-adam = opt.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-
-data_path = '../../Data/data'
-data_idx_path = '../../Data/idx'
-result_path = '../../results/model.h5'
+data_path = '../../../Data/data'
+data_idx_path = '../../../Data/idx'
+result_path = '../../../results/model.h5'
 #%% read data
 X = utils.loadData(data_path)  
 #%% prepare data
@@ -40,6 +38,7 @@ test_data_size = len(test_idx)
 data_idx = np.array([train_idx, test_idx])
 np.save(data_idx_path, data_idx)
 #%% model construction
+adam = opt.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 model = Sequential()
 model.add(LSTM(100, batch_input_shape=(1, None, 1), return_sequences=True, stateful=True))
 model.add(LSTM(100, return_sequences=True, stateful=True))
@@ -57,6 +56,8 @@ sample_idx = 4 #train_idx[0]
 
 
 recurr = 200
+
+
 seq = X[sample_idx][0]
 label = X[sample_idx][1]
 
@@ -67,15 +68,15 @@ X_train = np.expand_dims(np.expand_dims(seq, axis=2), axis=0)
 #y_train = np.expand_dims(np.expand_dims(label, axis=2), axis=0)
 y_train = krs.utils.to_categorical(label, 3)
     
-    model.reset_states()
-    model.fit(X_train[:, :, :], y_train[:, :, :], epochs=50, batch_size=1, shuffle=False)
+model.reset_states()
+model.fit(X_train[:, :, :], y_train[:, :, :], epochs=50, batch_size=1, shuffle=False)
 model.save(result_path)
 #%% validation on training sequence
 X_validation = np.reshape(X[sample_idx][0], (1, len(X[sample_idx][0]), 1))
 pdt = model.predict_classes(X_validation)
 accuracy = accu(pdt[:, :, 0].T, X[sample_idx][1])
 print('training accuracy is', accuracy)
-#%% validation result plot
+#%% validation result plot and zoom in
 plt.figure(figsize=(12, 3))
 plt.subplot(121)
 plt.plot(pdt[:, :, 0].T)
@@ -114,32 +115,3 @@ for ind in validation_idx:
 ac_avg = ac/len(validation_idx)
 print('****************************************************************')
 print('average validation accuracy =', ac_avg)
-#%%
-offset = 0
-plt.figure(figsize=(12, 8))
-for i in range(0, 9):
-    plt.subplot(331+i)
-    plt.plot(X_train[i+offset, :, :])
-    plt.ylim([-10, 260])
-    plt.title(i+offset)
-#%%
-offset = 0
-plt.figure(figsize=(12, 8))
-for i in range(0, 9):
-    plt.subplot(331+i)
-    plt.plot(y_train[i+offset, :, :])
-    plt.ylim([-0.1, 1.1])
-    plt.title(i+offset)
-#%%
-offset = 9
-plt.figure(figsize=(12, 8))
-for i in range(0, 9):
-    plt.subplot(331+i)
-    plt.plot(result[i+offset][0, :])
-    plt.title(i+offset)
-
-plt.figure(figsize=(12, 8))
-for i in range(0, 9):
-    plt.subplot(331+i)
-    plt.plot(truth[i+offset])
-    plt.title(i+offset)

@@ -9,7 +9,7 @@ import data_visualization as dv
 import numpy as np
 import matplotlib.pyplot as plt
 import json as js
-import keras
+import keras as krs
 
 
 
@@ -19,15 +19,6 @@ def loadData(directory):
     X = js.load(f)
     f.close()
     return X
-
-#%% distribution of the heap sizes
-def plotHist(X):
-    ll = []
-    for sample in X:
-        ll.append(len(sample[0]))
-    ll_hist = np.histogram(ll, bins=1000)
-    plt.figure()
-    plt.plot(ll_hist[1][:-1], ll_hist[0])
 
 #%% visualize data, 9 dump at a time
 def visualizeData(X, offset):
@@ -45,9 +36,47 @@ def extractDump(X, lower, upper):
     return X1
 
 #%% to prepare input data
-def reshapeData(Data, recurr):
-    seq = Data[0]
-    label = Data[1]
-    ll = len(seq)
+def reshapeData(Data, recurr, ll):
+    seq = []
+    label = []
+    if type(Data[0][0]) == list:
+        for sample in Data:
+            seq.append(sample[0])
+            label.append(sample[1])
+        
+    else:
+        seq = Data[0]
+        label = Data[1]
+    seq1 = np.array(seq)
+    label1 = np.array(label)
+
+    if len(seq1.shape) == 1:
+        seq1 = np.expand_dims(seq1, axis=0)
+        label1 = np.expand_dims(label1, axis=0)
+
+    if ll==None:
+        ll = seq1.shape[1]
+        
+    bt_size = seq1.shape[0]
     num_subseq = int(ll/recurr)
-    seq1 = seq[]
+    ll1 = num_subseq*recurr
+    
+    seq2 = seq1[:, :ll1]
+    label2 = label1[:, :ll1]
+    print(seq2.shape)
+    
+    X_train = np.zeros([bt_size*num_subseq, recurr])
+    y_train = np.zeros([bt_size*num_subseq, recurr])
+    print(X_train.shape)
+    for i in range(num_subseq):
+        X_train[i*bt_size:(i+1)*bt_size, :] = seq2[:, i*recurr:(i+1)*recurr]
+        y_train[i*bt_size:(i+1)*bt_size, :] = label2[:, i*recurr:(i+1)*recurr]
+    
+    return X_train, y_train
+#%%
+def label_to_cat(X, y, cat):
+    X_train = np.expand_dims(X, axis=2)
+    y_train = np.zeros((y.shape[0], y.shape[1], cat))
+    for i in range(y.shape[0]):
+        y_train[i, :, :] = krs.utils.to_categorical(y[i, :], cat)
+    return X_train, y_train
